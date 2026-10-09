@@ -129,6 +129,8 @@ first with `--limit` or `--ids`.
   It hears speech well, but this footage has almost no non-speech sound (music, typing, applause), so
   those concepts rarely fire. Each tile shows the middle frame of its clip, so a match can happen
   elsewhere within those 8 s. The playing tiles make that visible.
+- The source videos YouTube serves are AV1, so the full-video player needs a browser that decodes AV1.
+  Recent Chrome or Firefox are fine, and so is Safari on Apple M3 or newer. The clips themselves are H.264.
 - `serve.py` binds to `127.0.0.1`. Live search spends API credits, so it only accepts same-origin
   JSON requests.
 

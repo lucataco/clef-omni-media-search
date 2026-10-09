@@ -181,20 +181,43 @@ def build() -> None:
     groups = chunks()
     done = load_cache()
     keys = {key for key, _ in groups}
+
+    # Segments not in the local cache keep their rows from the existing index (e.g. the precomputed
+    # one shipped with the repo), as long as it was built from the same questions.
+    old_rows, old_stats = {}, {}
+    if INDEX.exists():
+        old = json.loads(INDEX.read_text())
+        if [(c["id"], c["q"]) for c in old["concepts"]] == [(c["id"], c["q"]) for c in CONCEPTS]:
+            old_rows = {s["id"]: r for s, r in zip(old["segments"], old["p"])}
+            old_stats = old.get("stats", {})
+
     segs, rows = [], []
-    tokens = 0
+    tokens = carried = 0
     for s in manifest["segments"]:
         recs = [done.get((s["id"], key)) for key in keys]
-        if not all(recs):
+        if all(recs):
+            answers = {}
+            for r in recs:
+                answers.update(r["answers"])
+                tokens += r["tokens"]
+            row = [round(answers[c["id"]] * 1000) for c in CONCEPTS]
+        elif s["id"] in old_rows:
+            row = old_rows[s["id"]]
+            carried += 1
+        else:
             continue
-        answers = {}
-        for r in recs:
-            answers.update(r["answers"])
-            tokens += r["tokens"]
         segs.append({k: s[k] for k in ("id", "video", "start", "duration", "clip", "poster")})
-        rows.append([round(answers[c["id"]] * 1000) for c in CONCEPTS])
+        rows.append(row)
+
+    seconds = sum(json.loads(l)["seconds"] for l in RUNS.read_text().splitlines() if l.strip()) if RUNS.exists() else 0
+    if carried and old_stats.get("segments"):
+        share = carried / old_stats["segments"]
+        tokens += round(old_stats.get("tokens", 0) * share)
+        seconds += (old_stats.get("index_seconds") or 0) * share
     INDEX.parent.mkdir(parents=True, exist_ok=True)
     videos = {k: {f: v[f] for f in ("title", "url", "duration", "raw")} for k, v in manifest["videos"].items()}
+    if carried:
+        print(f"kept {carried} segments from the existing index (not in media/answers.jsonl)")
     INDEX.write_text(json.dumps({
         "model": "@cf/cloudflare/clef-omni",
         "segment_seconds": manifest["seconds"],
@@ -204,8 +227,7 @@ def build() -> None:
         "p": rows,  # p[segment][concept] = P(yes) * 1000
         "stats": {"segments": len(segs), "decisions": len(segs) * len(CONCEPTS),
                   "tokens": tokens, "cost_usd": round(tokens * PRICE_PER_M / 1e6, 2),
-                  "index_seconds": round(sum(json.loads(l)["seconds"] for l in RUNS.read_text().splitlines() if l.strip()))
-                  if RUNS.exists() else None},
+                  "index_seconds": round(seconds) or None},
     }, separators=(",", ":")))
     print(f"index: {len(segs)} segments x {len(CONCEPTS)} concepts -> {INDEX.relative_to(ROOT)} "
           f"({INDEX.stat().st_size / 1e3:.0f} KB), {tokens / 1e6:.2f}M tokens, ${tokens * PRICE_PER_M / 1e6:.2f}")

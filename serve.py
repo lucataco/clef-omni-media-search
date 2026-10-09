@@ -44,7 +44,7 @@ try:
     client = Client()
 except SystemExit as e:
     client = None
-    print(f"live search disabled: {e}")
+    print(f"live search disabled: {e}", flush=True)
 pool = ThreadPoolExecutor(WORKERS)
 b64_cache: dict[str, str] = {}
 deep_cache: dict[tuple[str, str], float] = {}
@@ -207,7 +207,7 @@ def main() -> None:
     ap.add_argument("--port", type=int, default=8790)
     args = ap.parse_args()
     httpd = ThreadingHTTPServer((args.host, args.port), Handler)
-    print(f"http://{args.host}:{args.port}")
+    print(f"http://{args.host}:{args.port}", flush=True)
     httpd.serve_forever()
 
 

@@ -132,12 +132,12 @@ def main() -> None:
     index = ROOT / "web" / "data" / "index.json"
     if index.exists():
         indexed = {s["id"] for s in json.loads(index.read_text())["segments"]}
-        cut = {s["id"] for s in segments}
-        if indexed == cut:
+        have = {s["id"] for s in segments}
+        if indexed == have:
             print("segments match the precomputed web/data/index.json: `python serve.py` is ready")
         else:
-            print(f"web/data/index.json covers {len(indexed & cut)} of these {len(cut)} segments "
-                  f"({len(indexed - cut)} indexed segments are missing): run `python classify.py` to index them")
+            print(f"web/data/index.json covers {len(indexed & have)} of these {len(have)} segments "
+                  f"({len(indexed - have)} indexed segments are missing): run `python classify.py` to index them")
 
 
 if __name__ == "__main__":
