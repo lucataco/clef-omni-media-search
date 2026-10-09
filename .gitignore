@@ -1,0 +1,13 @@
+# secrets
+.env
+.env.*
+!.env.example
+
+# downloaded videos, cut clips, caches (regenerate with download.py / ingest.py / classify.py)
+media/
+web/media/
+
+__pycache__/
+*.pyc
+.venv/
+.DS_Store

@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Clef-omni media search</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="wall" aria-live="polite"></div>
+
+  <div id="searchbar">
+    <input id="q" type="text" placeholder="Search" autocomplete="off" spellcheck="false" autofocus>
+    <button id="clear" aria-label="Clear search" hidden>&times;</button>
+  </div>
+  <div id="matched"></div>
+
+  <div id="hud">
+    <span id="hud-left"></span>
+    <span id="hud-right"></span>
+  </div>
+
+  <div id="modal" hidden>
+    <div id="modal-card">
+      <video id="player" controls playsinline></video>
+      <div id="modal-meta">
+        <div id="modal-title"></div>
+        <div id="modal-time"></div>
+        <div id="modal-why"></div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
